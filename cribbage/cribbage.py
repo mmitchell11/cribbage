@@ -23,6 +23,7 @@ def check_all_cuts(hand):
 
 def optimal_discard_6(hand):
     # loop over all possible discard options
+    print hand
     possible_hands_scores = {}
     for i in range(6):
         for j in range(6):
@@ -41,20 +42,22 @@ def optimal_discard_6(hand):
 
     max_expected_points = 0
     best_hand = []
-    for hand, point_list in possible_hands_scores.iteritems():
+    for poss_hand, point_list in possible_hands_scores.iteritems():
         expected_points = mean(point_list)
         # print hand, expected_points
         if expected_points > max_expected_points:
             max_expected_points = expected_points
-            best_hand = hand
+            best_hand = poss_hand
+
+    discard = list(set(hand['hand6']) - set(best_hand))
 
     # print("Best Hand = {} for {} points".format(best_hand, max_expected_points))
-    return list(best_hand)
+    return list(best_hand), discard
 
 
 
 def discard(hand):
-    final_hand = optimal_discard_6(hand)
+    final_hand, discard = optimal_discard_6(hand)
     # final_hand = dealer_discard_6(hand)
     # final_hand = pone_discard_6(hand)
 
@@ -114,7 +117,7 @@ if __name__ == '__main__':
     # final_hands = dealt_hands
 
     # To analyze possible 6 card combinations
-    dealt_hands = deal_lots_6_no_cut(10000)
+    dealt_hands = deal_lots_6_no_cut(10)
     # print dealt_hands
     final_hands = discard_cards(dealt_hands)
     # print final_hands
