@@ -13,6 +13,7 @@ if __name__ == '__main__':
 
     # To analyze possible 6 card combinations
     dealt_hands = deal_lots_6_no_cut(10000)
+    dealt_hands = deal_lots_6_no_cut(100000)
     # dealt_hands = deal_lots_6_no_cut(10)
     # print dealt_hands
     final_hands, crib_hands = discard_cards(dealt_hands)
