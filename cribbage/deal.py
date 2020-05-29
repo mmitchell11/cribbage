@@ -49,9 +49,6 @@ def deal_lots_6_no_cut(num_hands):
             hands[g*2+i%2]['hand6'].append(chosen_card)
             dist_cards.remove(chosen_card)
 
-        # cut_card = random.choice(dist_cards)
-        # for j in range(2):
-        #     hands[g*2+j]['cut'].append(cut_card)
 
     return hands
 

@@ -23,7 +23,6 @@ def check_all_cuts(hand):
 
 def optimal_discard_6(hand):
     # loop over all possible discard options
-    print hand
     possible_hands_scores = {}
     for i in range(6):
         for j in range(6):
@@ -57,29 +56,80 @@ def optimal_discard_6(hand):
 
 
 def discard(hand):
-    final_hand, discard = optimal_discard_6(hand)
+    final_hand, discards = optimal_discard_6(hand)
     # final_hand = dealer_discard_6(hand)
     # final_hand = pone_discard_6(hand)
 
-    return final_hand
+    return final_hand, discards
 
 def discard_cards(hands):
     final_hands = {}
+    crib_hands = {}
     for player,hand in hands.iteritems():
-        if player % 100 == 0:
+        if player % 1000 == 0:
             print("{}::  {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Discarding Hand {}".format(player)))
         full_hand = {}
-        final_hand = discard(hand)
+        final_hand, discards = discard(hand)
+
+        # print player, hand, final_hand, discards
+
         full_hand['hand4'] = final_hand
         add_cut(full_hand)
         final_hands[player] = full_hand
+        if player/2 not in crib_hands:
+            crib_hands[player/2] = {}
+            crib_hands[player/2]['hand4'] = []
+        crib_hands[player/2]['hand4'].extend(discards)
+        if player%2 == 1:
+            add_cut(crib_hands[player/2])
 
-    return final_hands
+    return final_hands, crib_hands
+
+def track_discard_cards(crib_hands):
+    crib_cards = {}
+    for game, hand in crib_hands.iteritems():
+        for card in hand['hand4']:
+            if RANK_TO_TYPE[FULL_DECK[card]['rank']] not in crib_cards:
+                crib_cards[RANK_TO_TYPE[FULL_DECK[card]['rank']]] = 0
+            crib_cards[RANK_TO_TYPE[FULL_DECK[card]['rank']]] += 1
+
+    print("Distribution of cards in crib")
+    for card,count in crib_cards.iteritems():
+        print card,"|",count
+
+def track_discard_impact(hand, score, discard_crib_points):
+    # print hand, score
+    for i in range(2):
+        discard_cards = hand['hand4'][2*i:2*i+2]
+        discard_ranks = []
+        discard_string = ''
+
+        suited = False
+        first_suit = None
+        for card in discard_cards:
+            discard_ranks.append(FULL_DECK[card]['rank'])
+            if not first_suit:
+                first_suit = FULL_DECK[card]['suit']
+            elif FULL_DECK[card]['suit'] == first_suit:
+                suited = True
+        discard_ranks.sort()
+        for rank in discard_ranks:
+            discard_string += RANK_TO_TYPE[rank]
+        if discard_string not in discard_crib_points:
+            discard_crib_points[discard_string] = {}
+            # True and false for whether the cards are suited or not
+            discard_crib_points[discard_string][True] = []
+            discard_crib_points[discard_string][False] = []
+        discard_crib_points[discard_string][suited].append(score)
+
+    return discard_crib_points
 
 
 def count_hands(hands):
     point_counts = {}
     dist_ranks_points = {}
+
+    discard_crib_points = {}
     for player,hand in hands.iteritems():
         if player % 1000000 == 0:
             print("{}::  {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Analyzing Hand {}".format(player)))
@@ -87,6 +137,9 @@ def count_hands(hands):
         if score not in point_counts:
             point_counts[score] = 0
         point_counts[score] += 1
+
+        # to look at the impact of specific discards
+        discard_crib_points = track_discard_impact(hand, score, discard_crib_points)
 
     # # track scoring of all potential 4 card hands
     #     hand_ranks.sort()
@@ -101,31 +154,19 @@ def count_hands(hands):
     # analyze_all_hands(dist_ranks_points)
 
     # print out score distribution
+    print("Distribution of scores")
     for point,count in point_counts.iteritems():
         print point,"|",count
 
+    print("Impact of throws on crib score")
+    for throw_string, score_dict in discard_crib_points.iteritems():
+        print throw_string,"|",'suited',"|",len(score_dict[True]),"|",mean(score_dict[True])
+        print throw_string,"|",'unsuited',"|",len(score_dict[False]),"|",mean(score_dict[False])
+
 
 if __name__ == '__main__':
-    print("{}::  {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Start"))
+    print("No longer using cribbage.py to run specific scripts")
     
-    # # To test out things with a bunch of 4 card hands with cut
-    # dealt_hands = deal_lots_4_w_cut(2500)
-    # final_hands = dealt_hands
-
-    # # To check for all possible 4 card hands with cuts
-    # dealt_hands = deal_all_4_w_cut()
-    # final_hands = dealt_hands
-
-    # To analyze possible 6 card combinations
-    dealt_hands = deal_lots_6_no_cut(10)
-    # print dealt_hands
-    final_hands = discard_cards(dealt_hands)
-    # print final_hands
-
-    print("{} hands".format(len(final_hands)))
-
-    count_hands(final_hands)
-    print("{}::  {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "End"))
 
 
 
